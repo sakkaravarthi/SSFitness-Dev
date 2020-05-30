@@ -6,29 +6,34 @@
     tools:context=".ui.home.chat.FriendsFragment">
 
 
+    <EditText
+        android:id="@+id/btn_search_users"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:ems="12"
+        android:layout_marginLeft="@dimen/_32sdp"
+        android:layout_marginTop="@dimen/_16sdp"
+        android:layout_marginRight="@dimen/_32sdp"
+        android:background="@drawable/background"
+        android:gravity="start"
+        android:hint="Search People" />
 
-  <EditText
-      android:background="@drawable/background"
-      android:layout_width="match_parent"
-      android:layout_height="40dp"
-      android:hint="Search People"
-      android:gravity="center"
-      android:id="@+id/btn_search_users"
-      android:layout_marginTop="@dimen/_16sdp"
-      android:layout_marginLeft="@dimen/_32sdp"
-      android:drawableRight="@drawable/ic_search_black"
-      android:layout_marginRight="@dimen/_32sdp"/>
-
-
+    <ImageButton
+        android:id="@+id/button_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_16sdp"
+        android:layout_toRightOf="@+id/btn_search_users"
+        android:background="@drawable/shape_search_button_background"
+        android:src="@drawable/ic_search_black" />
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:layout_marginTop="@dimen/_16sdp"
+        android:id="@+id/friends_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/friends_list"
-       android:layout_below="@id/btn_search_users"
-        >
+        android:layout_below="@id/btn_search_users"
+        android:layout_marginTop="@dimen/_16sdp">
 
 
     </androidx.recyclerview.widget.RecyclerView>

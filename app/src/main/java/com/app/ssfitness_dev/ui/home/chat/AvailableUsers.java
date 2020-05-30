@@ -44,6 +44,7 @@ public class AvailableUsers extends Fragment {
 
     private FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
     private Query mUsersRef;
+    private String searchQuery;
 
 
     public AvailableUsers() {
@@ -55,6 +56,11 @@ public class AvailableUsers extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            searchQuery = bundle.getString("searchName");
+        }
+
         return inflater.inflate(R.layout.fragment_available_users, container, false);
     }
 
@@ -63,10 +69,8 @@ public class AvailableUsers extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("users");
-
-        mQueryRef = mUsersDatabase.orderByChild("profileComplete").equalTo(true);
+        mQueryRef = mUsersDatabase.orderByChild("userName").startAt(searchQuery).endAt(searchQuery + "\\uf8ff");
         //mUsersRef = firebaseFirestore.collection("users");//.whereEqualTo("userEmail", "ravi.gamer95@gmail.com");;
-
 
         mUsersRecyclerList = view.findViewById(R.id.recyclerview_users);
         mUsersRecyclerList.setHasFixedSize(true);
@@ -103,7 +107,10 @@ public class AvailableUsers extends Fragment {
 
         options = new FirebaseRecyclerOptions.Builder<User>().setQuery(mQueryRef,User.class).build();
 
-        FirebaseRecyclerAdapter<User, UsersViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<User, UsersViewHolder>(options) {
+        FirebaseRecyclerAdapter<User, UsersViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<User, UsersViewHolder>(
+                options
+
+        ) {
             @Override
             protected void onBindViewHolder(@NonNull UsersViewHolder holder, int position, @NonNull User model) {
 

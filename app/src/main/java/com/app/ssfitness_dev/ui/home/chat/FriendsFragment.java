@@ -23,6 +23,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,6 +42,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 /**
@@ -48,7 +50,8 @@ import com.google.firebase.database.ValueEventListener;
  */
 public class FriendsFragment extends Fragment {
 
-    EditText buttonSearchUsers;
+    EditText editTextSearchUsers;
+    ImageButton buttonsearchUsers;
     private NavController navController;
     private RecyclerView mFriendsList;
     private DatabaseReference mFriendsDatabase;
@@ -70,7 +73,7 @@ public class FriendsFragment extends Fragment {
 
 
         mMainView = inflater.inflate(R.layout.fragment_friends, container, false);
-        mFriendsList =  mMainView.findViewById(R.id.friends_list);
+        mFriendsList = mMainView.findViewById(R.id.friends_list);
         mAuth = FirebaseAuth.getInstance();
 
         mCurrentUser = mAuth.getCurrentUser().getUid();
@@ -91,7 +94,7 @@ public class FriendsFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        options = new FirebaseRecyclerOptions.Builder<Friends>().setQuery(mFriendsDatabase,Friends.class).build();
+        options = new FirebaseRecyclerOptions.Builder<Friends>().setQuery(mFriendsDatabase, Friends.class).build();
 
 
         FirebaseRecyclerAdapter<Friends, FriendsViewHolder> friendsRecyclerViewHolderAdapter = new FirebaseRecyclerAdapter<Friends, FriendsViewHolder>(options) {
@@ -108,14 +111,14 @@ public class FriendsFragment extends Fragment {
                         String userName = dataSnapshot.child("userName").getValue().toString();
                         String userProfile = dataSnapshot.child("photoUrl").getValue().toString();
 
-                        if(dataSnapshot.hasChild("online")) {
+                        if (dataSnapshot.hasChild("online")) {
                             String userOnline = dataSnapshot.child("online").getValue().toString();
                             holder.setUserOnline(userOnline);
                         }
 
 
                         holder.setName(userName);
-                        if(userProfile!=null){
+                        if (userProfile != null) {
                             holder.setPhoto(userProfile, getContext());
                         }
 
@@ -136,16 +139,15 @@ public class FriendsFragment extends Fragment {
                                     public void onClick(DialogInterface dialogInterface, int i) {
 
                                         //Click event for each item
-                                        if(i == 0)
-                                        {
+                                        if (i == 0) {
                                             Intent profileIntent = new Intent(getContext(), UserProfileActivity.class);
                                             profileIntent.putExtra("user_id", list_user_id);
                                             startActivity(profileIntent);
                                         }
 
-                                        if(i== 1){
+                                        if (i == 1) {
                                             Intent chatIntent = new Intent(getContext(), UserChatActivity.class);
-                                            chatIntent.putExtra("user_name",userName);
+                                            chatIntent.putExtra("user_name", userName);
                                             chatIntent.putExtra("user_id", list_user_id);
                                             startActivity(chatIntent);
                                         }
@@ -157,6 +159,7 @@ public class FriendsFragment extends Fragment {
                             }
                         });
                     }
+
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -195,16 +198,16 @@ public class FriendsFragment extends Fragment {
             userDateView.setText(date);
         }
 
-        public void setName(String name){
+        public void setName(String name) {
 
             TextView userNameView = mView.findViewById(R.id.user_single_name);
             userNameView.setText(name);
         }
 
-        public void setPhoto(String userProfileUrl, Context applicationContext){
+        public void setPhoto(String userProfileUrl, Context applicationContext) {
             ImageView userProfileView = mView.findViewById(R.id.user_single_profile);
 
-            if(applicationContext!=null){
+            if (applicationContext != null) {
                 Glide.with(mView.getContext()).load(userProfileUrl).into(userProfileView);
             }
 
@@ -212,17 +215,15 @@ public class FriendsFragment extends Fragment {
 
         }
 
-        public void setUserOnline(String online_icon){
+        public void setUserOnline(String online_icon) {
 
             ImageView userOnlineView = mView.findViewById(R.id.user_single_online_status);
 
-            if(online_icon.equals("true")){
+            if (online_icon.equals("true")) {
 
                 userOnlineView.setColorFilter(mView.getContext().getResources().getColor(R.color.colorPrimary));
                 userOnlineView.setVisibility(View.VISIBLE);
-            }
-            else
-            {
+            } else {
                 userOnlineView.setColorFilter(mView.getContext().getResources().getColor(R.color.colorRed));
                 userOnlineView.setVisibility(View.VISIBLE);
             }
@@ -230,28 +231,30 @@ public class FriendsFragment extends Fragment {
         }
 
 
-
-
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-       buttonSearchUsers = view.findViewById(R.id.btn_search_users);
+        editTextSearchUsers = view.findViewById(R.id.btn_search_users);
+        buttonsearchUsers = view.findViewById(R.id.button_search);
 
         navController = Navigation.findNavController(view);
 
-       buttonSearchUsers.setOnClickListener(new OnClickListener() {
+        buttonsearchUsers.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                String editTextQuery = editTextSearchUsers.getText().toString();
                 Bundle args = new Bundle();
-                Navigation.findNavController(getView()).navigate(R.id.availableUsers);
+                args.putString("searchName", editTextQuery);
+                Navigation.findNavController(getView()).navigate(R.id.availableUsers,args);
             }
         });
 
 
-
     }
+
 
 
     @Override
