@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -47,7 +48,7 @@ import com.google.firebase.database.ValueEventListener;
  */
 public class FriendsFragment extends Fragment {
 
-    Button buttonSearchUsers;
+    EditText buttonSearchUsers;
     private NavController navController;
     private RecyclerView mFriendsList;
     private DatabaseReference mFriendsDatabase;
@@ -236,7 +237,8 @@ public class FriendsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        buttonSearchUsers = view.findViewById(R.id.btn_search_users);
+       buttonSearchUsers = view.findViewById(R.id.btn_search_users);
+
         navController = Navigation.findNavController(view);
 
        buttonSearchUsers.setOnClickListener(new OnClickListener() {
