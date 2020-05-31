@@ -1,6 +1,7 @@
 package com.app.ssfitness_dev.ui.home.chat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 
@@ -16,8 +17,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.app.ssfitness_dev.R;
+import com.app.ssfitness_dev.data.models.User;
 import com.app.ssfitness_dev.ui.home.chat.FriendsFragment.FriendsViewHolder;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -29,7 +32,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
+
+import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -43,12 +49,14 @@ public class LiveChatFragment extends Fragment {
     private DatabaseReference mConvDatabase;
     private DatabaseReference mMessageDatabase;
     private DatabaseReference mUsersDatabase;
+    private DatabaseReference mChatUserDatabase;
 
     private FirebaseAuth mAuth;
 
     private String mCurrent_user_id;
 
     private View mMainView;
+    private String userName;
 
     //options for firebase recycler
     FirebaseRecyclerOptions<Conversation> options;
@@ -65,8 +73,7 @@ public class LiveChatFragment extends Fragment {
         // Inflate the layout for this fragment
 
 
-
-        mMainView =  inflater.inflate(R.layout.fragment_live_chat, container, false);
+        mMainView = inflater.inflate(R.layout.fragment_live_chat, container, false);
         mConvList = mMainView.findViewById(R.id.conv_list);
         mAuth = FirebaseAuth.getInstance();
 
@@ -77,8 +84,10 @@ public class LiveChatFragment extends Fragment {
         mConvDatabase.keepSynced(true);
         mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("users");
         mMessageDatabase = FirebaseDatabase.getInstance().getReference().child("messages")
-        .child(mCurrent_user_id);
+                .child(mCurrent_user_id);
         mUsersDatabase.keepSynced(true);
+        mChatUserDatabase = FirebaseDatabase.getInstance().getReference().child("chat").child(mCurrent_user_id);
+
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setReverseLayout(true);
@@ -96,8 +105,7 @@ public class LiveChatFragment extends Fragment {
         super.onStart();
 
         Query conversationQuery = mConvDatabase.orderByChild("timestamp");
-
-        options = new FirebaseRecyclerOptions.Builder<Conversation>().setQuery(conversationQuery,Conversation.class).build();
+        options = new FirebaseRecyclerOptions.Builder<Conversation>().setQuery(conversationQuery, Conversation.class).build();
 
         FirebaseRecyclerAdapter<Conversation, ConversationViewHolder> firebaseRecyclerAdapter
                 = new FirebaseRecyclerAdapter<Conversation, ConversationViewHolder>(options) {
@@ -110,22 +118,38 @@ public class LiveChatFragment extends Fragment {
                 lastMessageQuery.addChildEventListener(new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        Messages messages = dataSnapshot.getValue(Messages.class);
+                        assert messages != null;
+                        mUsersDatabase.child(messages.getFrom()).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                User user = dataSnapshot.getValue(User.class);
+                                assert user != null;
+                                userName = user.userName;
+                                String userProfile = user.photoUrl;
+                                holder.setName(userName);
+                                if (userProfile != null) {
+                                    holder.setPhoto(userProfile, getContext());
+                                }
+                                if (dataSnapshot.hasChild("online")) {
+                                    String userOnline = dataSnapshot.child("online").getValue().toString();
+                                    holder.setUserOnline(userOnline);
+                                }
+
+
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
 
                         String data = dataSnapshot.child("message").getValue().toString();
-                       /* String userName = dataSnapshot.child("userName").getValue().toString();
-                        String userProfile = dataSnapshot.child("photoUrl").getValue().toString();
-
-                        if(dataSnapshot.hasChild("online")) {
-                            String userOnline = dataSnapshot.child("online").getValue().toString();
-                            holder.setUserOnline(userOnline);
-                        }
 
 
-                        holder.setName(userName);
-                        if(userProfile!=null){
-                            holder.setPhoto(userProfile, getContext());
-                        }
-*/
+
                         holder.setMessage(data, model.isSeen());
                     }
 
@@ -147,6 +171,15 @@ public class LiveChatFragment extends Fragment {
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
+                    }
+                });
+                holder.mView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent chatIntent = new Intent(getContext(), UserChatActivity.class);
+                        chatIntent.putExtra("user_name", userName);
+                        chatIntent.putExtra("user_id", list_user_id);
+                        startActivity(chatIntent);
                     }
                 });
             }
@@ -180,7 +213,7 @@ public class LiveChatFragment extends Fragment {
 
 }
 
-class ConversationViewHolder extends RecyclerView.ViewHolder{
+class ConversationViewHolder extends RecyclerView.ViewHolder {
 
     View mView;
 
@@ -189,48 +222,44 @@ class ConversationViewHolder extends RecyclerView.ViewHolder{
         mView = itemView;
     }
 
-    public void setMessage(String message, boolean isSeen){
+    public void setMessage(String message, boolean isSeen) {
 
         TextView userMessageView = mView.findViewById(R.id.user_single_message);
         userMessageView.setText(message);
 
-        if(!isSeen){
+        if (!isSeen) {
             userMessageView.setTypeface(userMessageView.getTypeface(), Typeface.BOLD);
-        }
-        else
-        {
+        } else {
             userMessageView.setTypeface(userMessageView.getTypeface(), Typeface.NORMAL);
         }
     }
 
-    public void setName(String name){
+    public void setName(String name) {
         TextView userNameView = mView.findViewById(R.id.user_single_name);
         userNameView.setText(name);
     }
 
-    public void setPhoto(String userProfileUrl, Context applicationContext){
+    public void setPhoto(String userProfileUrl, Context applicationContext) {
         ImageView userProfileView = mView.findViewById(R.id.user_single_profile);
 
-        if(applicationContext!=null){
+        if (applicationContext != null) {
             Glide.with(mView.getContext()).load(userProfileUrl).into(userProfileView);
         }
 
     }
 
-    public void setUserOnline(String online_status){
+    public void setUserOnline(String online_status) {
 
         ImageView userOnlineView = mView.findViewById(R.id.user_single_online_status);
-        if(online_status.equals("true")){
+        if (online_status.equals("true")) {
+
+            userOnlineView.setColorFilter(mView.getContext().getResources().getColor(R.color.colorPrimary));
+            userOnlineView.setVisibility(View.VISIBLE);
+        } else {
+            userOnlineView.setColorFilter(mView.getContext().getResources().getColor(R.color.colorRed));
             userOnlineView.setVisibility(View.VISIBLE);
         }
-        else {
-            userOnlineView.setVisibility(View.INVISIBLE);
-        }
     }
-
-
-
-
 
 
 }
