@@ -61,7 +61,7 @@ public class LiveChatFragment extends Fragment {
     //options for firebase recycler
     FirebaseRecyclerOptions<Conversation> options;
 
-
+ // 
     public LiveChatFragment() {
         // Required empty public constructor
     }
