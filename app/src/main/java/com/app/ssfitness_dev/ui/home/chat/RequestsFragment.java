@@ -41,7 +41,7 @@ public class RequestsFragment extends Fragment {
     private com.google.firebase.database.Query mQueryRef;
 
     public RequestsFragment() {
-        // Required empty public constructor
+        /// Required empty public constructor
     }
 
 
